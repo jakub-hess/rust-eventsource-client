@@ -533,7 +533,7 @@ where
                         self.as_mut()
                             .project()
                             .state
-                            .set(State::WaitingToReconnect(delay(duration, "retrying")))
+                            .set(State::WaitingToReconnect(delay(duration, "retrying")));
                     }
                 },
                 StateProj::FollowingRedirect(maybe_header) => match uri_from_header(maybe_header) {
@@ -568,10 +568,12 @@ where
                             if let Some(downcast) = cause.downcast_ref::<std::io::Error>() {
                                 if let std::io::ErrorKind::TimedOut = downcast.kind() {
                                     return Poll::Ready(Some(Err(Error::TimedOut)));
+                                } else {
+                                    return Poll::Ready(Some(Err(Error::HttpStream(Box::new(e)))));
                                 }
+                            } else {
+                                return Poll::Ready(Some(Err(Error::HttpStream(Box::new(e)))));
                             }
-                        } else {
-                            return Poll::Ready(Some(Err(Error::HttpStream(Box::new(e)))));
                         }
                     }
                     None => {

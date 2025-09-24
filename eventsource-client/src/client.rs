@@ -568,6 +568,8 @@ where
                             if let Some(downcast) = cause.downcast_ref::<std::io::Error>() {
                                 if let std::io::ErrorKind::TimedOut = downcast.kind() {
                                     return Poll::Ready(Some(Err(Error::TimedOut)));
+                                } else if let std::io::ErrorKind::UnexpectedEof = downcast.kind() {
+                                    return Poll::Ready(Some(Err(Error::UnexpectedEof)));
                                 } else {
                                     return Poll::Ready(Some(Err(Error::HttpStream(Box::new(e)))));
                                 }
